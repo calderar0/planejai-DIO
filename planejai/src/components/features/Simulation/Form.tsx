@@ -1,24 +1,42 @@
+import { simulationFormSteps } from '@/data/simulations'
 import { FormStep } from './FormStep'
+import { useState } from 'react'
 import { StepProgress } from './Progress'
-import { Divider } from '@/components/shared/Divider'
-import {PiggyBank} from 'lucide-react'
 
 export const SimulationForm = () => {
+  const [currentStepIndex, setCurrentStepIndex] = useState(0)
+  const totalSteps = simulationFormSteps.length
+  const currentStep = simulationFormSteps[currentStepIndex]
+
+  const handleNextStep = () => {
+    if (currentStepIndex + 1 > totalSteps - 1) {
+      return
+    }
+
+    setCurrentStepIndex((prev) => prev + 1)
+  }
+
+  const handlePreviousStep = () => {
+    if (currentStepIndex === 0) {
+      return
+    }
+
+    setCurrentStepIndex((prev) => prev - 1)
+  }
+
   return (
     <>
-        <StepProgress currentStep={1} totalSteps={6} />
-        <Divider className="my-6" />
-        <FormStep
-          icon={PiggyBank}
-          title="Dados do Investimento"
-          question="Qual é o valor do investimento inicial?"
-          inputProps={{
-            type: 'text',
-            placeholder: 'ex: 10.000,00',
-            prefix: 'R$',
-          }}
-        />
-        {/* Formulário de dados do investimento */}
+      <StepProgress
+        currentStep={currentStepIndex + 1}
+        totalSteps={totalSteps}
+      />
+      <FormStep
+        {...currentStep}
+        key={currentStep.id}
+        hideBackButton={currentStepIndex === 0}
+        onBack={handlePreviousStep}
+        onNext={handleNextStep}
+      />
     </>
   )
 }
