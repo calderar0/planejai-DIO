@@ -3,42 +3,88 @@ import { type SimulationFormData, type SimulationRecord } from '@/data/simulatio
 const LOCAL_STORAGE_KEY = 'simulation-data'
 
 export const useSimulationStorage = () => {
+  const getSavedSimulations = () => {
+    const storage = localStorage.getItem(LOCAL_STORAGE_KEY)
+
+    return storage ? (JSON.parse(storage) as SimulationRecord[]) : []
+  }
+
+  const setSavedSimulations = (records: SimulationRecord[]) => {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(records))
+  }
+
   const saveFormData = (formData: SimulationFormData) => {
     const id = crypto.randomUUID()
-    const record: SimulationRecord = {...formData, id}
-    const storage = localStorage.getItem(LOCAL_STORAGE_KEY)
-    const savedData = storage
-      ? (JSON.parse(storage) as SimulationRecord[])
-      : []
+    const now = new Date().toISOString()
+    const record: SimulationRecord = {
+      ...formData,
+      id,
+      createdAt: now,
+      updatedAt: now,
+      conversations: [],
+    }
+    const savedData = getSavedSimulations()
 
-    localStorage.setItem(
-      LOCAL_STORAGE_KEY,
-      JSON.stringify([...savedData, record]),
-    )
+    setSavedSimulations([...savedData, record])
 
     return id
   }
 
-  const getFormData = (id: string) => {
-    const storage = localStorage.getItem(LOCAL_STORAGE_KEY)
-    if (!storage) {
-      return null
-    }
+  const getAllSimulations = () => getSavedSimulations()
 
-    const savedData = JSON.parse(storage) as SimulationRecord[]
+  const getFormData = (id: string) => {
+    const savedData = getSavedSimulations()
     return savedData.find((record) => record.id === id) || null
   }
 
   const updateSimulation = (id: string, data: SimulationRecord) => {
-  const storage = localStorage.getItem(LOCAL_STORAGE_KEY)
-  const savedData = storage ? (JSON.parse(storage) as SimulationRecord[]) : []
+    const savedData = getSavedSimulations()
 
-  const updated = savedData.map((record) =>
-    record.id === id ? { ...data } : record,
-  )
+    const updated = savedData.map((record) =>
+      record.id === id
+        ? {
+            ...record,
+            ...data,
+            id,
+            updatedAt: new Date().toISOString(),
+          }
+        : record,
+    )
 
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated))
+    setSavedSimulations(updated)
   }
 
-  return { saveFormData, getFormData, updateSimulation }
+  const deleteSimulation = (id: string) => {
+    const savedData = getSavedSimulations()
+
+    setSavedSimulations(savedData.filter((record) => record.id !== id))
+  }
+
+  const addConversation = (
+    id: string,
+    conversation: NonNullable<SimulationRecord['conversations']>[number],
+  ) => {
+    const savedData = getSavedSimulations()
+
+    const updated = savedData.map((record) =>
+      record.id === id
+        ? {
+            ...record,
+            conversations: [...(record.conversations ?? []), conversation],
+            updatedAt: new Date().toISOString(),
+          }
+        : record,
+    )
+
+    setSavedSimulations(updated)
+  }
+
+  return {
+    addConversation,
+    deleteSimulation,
+    getAllSimulations,
+    getFormData,
+    saveFormData,
+    updateSimulation,
+  }
 }

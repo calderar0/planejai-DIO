@@ -10,6 +10,13 @@ import {
 import type { FormStepProps } from '../components/features/Simulation/FormStep'
 import type { InsightData } from '@/services/aiService'
 
+export interface SimulationConversation {
+  id: string
+  question: string
+  answer: string
+  createdAt: string
+}
+
 export const simulationFormSteps = [
   {
     id: 'income',
@@ -89,4 +96,10 @@ export const simulationFormSteps = [
 
 export type SimulationFormData = Record<(typeof simulationFormSteps)[number]['id'], string>
 
-export type SimulationRecord = SimulationFormData & { id: string; insight?: InsightData }
+export type SimulationRecord = SimulationFormData & {
+  id: string
+  createdAt?: string
+  updatedAt?: string
+  insight?: InsightData
+  conversations?: SimulationConversation[]
+}

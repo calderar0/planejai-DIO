@@ -30,7 +30,7 @@ export function buildAIPrompt(simulation: SimulationRecord) {
 
   const monthlySavings = calcMonthlySavings(simulation)
   const monthlySavingsNeeded =
-    parseCurrency(goalAmount) / parseInt(goalDeadline)
+    parseCurrency(goalAmount) / parseInt(goalDeadline, 10)
 
   return `Você é um educador financeiro especializado em finanças pessoais. Analise os dados abaixo e gere um diagnóstico financeiro personalizado com linguagem clara, didática e encorajadora, voltado para pessoas sem conhecimento financeiro. O diagnóstico será exibido diretamente ao usuário no app, fale sempre em segunda pessoa ("você tem...", "sua meta...").
 
@@ -59,4 +59,31 @@ Regras:
   - "viable": saldo após reserva para a meta é maior ou igual a 0
   - "needs_adjustment": saldo negativo de até 20% do valor da economia mensal necessária
   - "unfeasible": saldo negativo superior a 20% do valor da economia mensal necessária`
+}
+
+export function buildCoachPrompt(
+  simulation: SimulationRecord,
+  question: string,
+  conversationHistory: string,
+) {
+  const monthlySavings = calcMonthlySavings(simulation)
+
+  return `Você é um educador financeiro amigável, objetivo e didático. Responda com clareza, em português do Brasil, usando frases curtas e diretas. A resposta será mostrada ao usuário dentro de um app.
+
+Dados da simulação:
+- Renda mensal bruta: ${simulation.income}
+- Custos fixos essenciais: ${simulation.expenses}
+- Dívidas e parcelas mensais: ${simulation.debts}
+- Valor disponível por mês: ${monthlySavings} reais
+- Meta: ${simulation.goalName}
+- Custo da meta: ${simulation.goalAmount}
+- Prazo desejado: ${simulation.goalDeadline} meses
+
+Histórico da conversa:
+${conversationHistory || 'Nenhuma conversa anterior.'}
+
+Pergunta do usuário:
+${question}
+
+Responda diretamente ao usuário, com no máximo 2 parágrafos curtos. Não use JSON, lista, markdown ou aviso de limite.`
 }
