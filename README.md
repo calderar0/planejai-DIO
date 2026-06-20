@@ -64,5 +64,3 @@ pnpm preview
 - Organização de formulários em passos e separação de responsabilidades no frontend.
 
 ---
-
-Se quiser, posso ajustar o texto, adicionar requisitos de versão do Node, ou copiar este conteúdo para `planejai/README.md`. Diga qual opção prefere.
