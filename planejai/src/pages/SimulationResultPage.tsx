@@ -1,7 +1,6 @@
 import { AIInsightsCard } from "@/components/features/Simulation/AIInsightProps";
 import { Card } from "@/components/features/Simulation/Card";
 import { PageHero } from "@/components/shared/PageHero";
-import type { SimulationFormData } from "@/data/simulations";
 import { useSimulationStorage } from "@/hooks/useSimulationStorage";
 import { calcMonthlySavings } from "@/utils/simulation";
 import { CalendarClock, CreditCardIcon, Goal, Landmark, PiggyBank, Wallet } from "lucide-react";
