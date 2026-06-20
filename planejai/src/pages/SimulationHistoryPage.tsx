@@ -7,7 +7,7 @@ import {
   Trash2,
   type LucideIcon,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/shared/button'
@@ -121,10 +121,7 @@ function HistoryCard({
 
 export function SimulationHistoryPage() {
   const navigate = useNavigate()
-  const { deleteSimulation, getAllSimulations } = useSimulationStorage()
-  const [simulations, setSimulations] = useState<SimulationRecord[]>(
-    () => getAllSimulations(),
-  )
+  const { deleteSimulation, simulations } = useSimulationStorage()
 
   const orderedSimulations = useMemo(
     () =>
@@ -139,9 +136,6 @@ export function SimulationHistoryPage() {
 
   const handleDelete = (id: string) => {
     deleteSimulation(id)
-    setSimulations((currentSimulations) =>
-      currentSimulations.filter((simulation) => simulation.id !== id),
-    )
   }
 
   return (

@@ -1,16 +1,21 @@
-import { AIInsightsCard } from "@/components/features/Simulation/AIInsightProps";
-import { Card } from "@/components/features/Simulation/Card";
-import { PageHero } from "@/components/shared/PageHero";
-import { useSimulationStorage } from "@/hooks/useSimulationStorage";
-import { calcMonthlySavings } from "@/utils/simulation";
-import { CalendarClock, CreditCardIcon, Goal, Landmark, PiggyBank, Wallet } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useMemo } from 'react'
+import { CalendarClock, CreditCardIcon, Goal, Landmark, PiggyBank, Wallet } from 'lucide-react'
+import { useParams } from 'react-router-dom'
+
+import { AIInsightsCard } from '@/components/features/Simulation/AIInsightProps'
+import { Card } from '@/components/features/Simulation/Card'
+import { PageHero } from '@/components/shared/PageHero'
+import { useSimulationStorage } from '@/hooks/useSimulationStorage'
+import { calcMonthlySavings } from '@/utils/simulation'
 
 
 export function SimulationResultsPage() {
-  const {id} = useParams<{id: string}>()
-  const { getFormData } = useSimulationStorage()
-  const data = id ? getFormData(id) : null
+  const { id } = useParams<{ id: string }>()
+  const { simulations } = useSimulationStorage()
+  const data = useMemo(
+    () => (id ? simulations.find((simulation) => simulation.id === id) ?? null : null),
+    [id, simulations],
+  )
 
   if (!data) {
     return <p>Simulação não encontrada.</p>

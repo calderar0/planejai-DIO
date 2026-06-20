@@ -1,83 +1,114 @@
+import { useCallback, useEffect, useState } from 'react'
+
 import { type SimulationFormData, type SimulationRecord } from '@/data/simulations'
 
 const LOCAL_STORAGE_KEY = 'simulation-data'
+const STORAGE_EVENT_NAME = 'simulation-storage-changed'
 
 export const useSimulationStorage = () => {
-  const getSavedSimulations = () => {
+  const [simulations, setSimulations] = useState<SimulationRecord[]>(() => {
     const storage = localStorage.getItem(LOCAL_STORAGE_KEY)
 
     return storage ? (JSON.parse(storage) as SimulationRecord[]) : []
-  }
+  })
 
-  const setSavedSimulations = (records: SimulationRecord[]) => {
+  const getSavedSimulations = useCallback(() => {
+    const storage = localStorage.getItem(LOCAL_STORAGE_KEY)
+
+    return storage ? (JSON.parse(storage) as SimulationRecord[]) : []
+  }, [])
+
+  const setSavedSimulations = useCallback((records: SimulationRecord[]) => {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(records))
-  }
+    setSimulations(records)
+    window.dispatchEvent(new Event(STORAGE_EVENT_NAME))
+  }, [])
 
-  const saveFormData = (formData: SimulationFormData) => {
-    const id = crypto.randomUUID()
-    const now = new Date().toISOString()
-    const record: SimulationRecord = {
-      ...formData,
-      id,
-      createdAt: now,
-      updatedAt: now,
-      conversations: [],
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setSimulations(getSavedSimulations())
     }
-    const savedData = getSavedSimulations()
 
-    setSavedSimulations([...savedData, record])
+    window.addEventListener('storage', handleStorageChange)
+    window.addEventListener(STORAGE_EVENT_NAME, handleStorageChange)
 
-    return id
-  }
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+      window.removeEventListener(STORAGE_EVENT_NAME, handleStorageChange)
+    }
+  }, [getSavedSimulations])
 
-  const getAllSimulations = () => getSavedSimulations()
+  const saveFormData = useCallback(
+    (formData: SimulationFormData) => {
+      const id = crypto.randomUUID()
+      const now = new Date().toISOString()
+      const record: SimulationRecord = {
+        ...formData,
+        id,
+        createdAt: now,
+        updatedAt: now,
+        conversations: [],
+      }
+      const savedData = getSavedSimulations()
 
-  const getFormData = (id: string) => {
-    const savedData = getSavedSimulations()
-    return savedData.find((record) => record.id === id) || null
-  }
+      setSavedSimulations([...savedData, record])
 
-  const updateSimulation = (id: string, data: SimulationRecord) => {
-    const savedData = getSavedSimulations()
+      return id
+    },
+    [getSavedSimulations, setSavedSimulations],
+  )
 
-    const updated = savedData.map((record) =>
-      record.id === id
-        ? {
-            ...record,
-            ...data,
-            id,
-            updatedAt: new Date().toISOString(),
-          }
-        : record,
-    )
+  const getAllSimulations = useCallback(() => simulations, [simulations])
 
-    setSavedSimulations(updated)
-  }
+  const getFormData = useCallback(
+    (id: string) => simulations.find((record) => record.id === id) || null,
+    [simulations],
+  )
 
-  const deleteSimulation = (id: string) => {
-    const savedData = getSavedSimulations()
+  const updateSimulation = useCallback(
+    (id: string, data: SimulationRecord) => {
+      const updated = simulations.map((record) =>
+        record.id === id
+          ? {
+              ...record,
+              ...data,
+              id,
+              updatedAt: new Date().toISOString(),
+            }
+          : record,
+      )
 
-    setSavedSimulations(savedData.filter((record) => record.id !== id))
-  }
+      setSavedSimulations(updated)
+    },
+    [setSavedSimulations, simulations],
+  )
 
-  const addConversation = (
-    id: string,
-    conversation: NonNullable<SimulationRecord['conversations']>[number],
-  ) => {
-    const savedData = getSavedSimulations()
+  const deleteSimulation = useCallback(
+    (id: string) => {
+      setSavedSimulations(simulations.filter((record) => record.id !== id))
+    },
+    [setSavedSimulations, simulations],
+  )
 
-    const updated = savedData.map((record) =>
-      record.id === id
-        ? {
-            ...record,
-            conversations: [...(record.conversations ?? []), conversation],
-            updatedAt: new Date().toISOString(),
-          }
-        : record,
-    )
+  const addConversation = useCallback(
+    (
+      id: string,
+      conversation: NonNullable<SimulationRecord['conversations']>[number],
+    ) => {
+      const updated = simulations.map((record) =>
+        record.id === id
+          ? {
+              ...record,
+              conversations: [...(record.conversations ?? []), conversation],
+              updatedAt: new Date().toISOString(),
+            }
+          : record,
+      )
 
-    setSavedSimulations(updated)
-  }
+      setSavedSimulations(updated)
+    },
+    [setSavedSimulations, simulations],
+  )
 
   return {
     addConversation,
@@ -85,6 +116,7 @@ export const useSimulationStorage = () => {
     getAllSimulations,
     getFormData,
     saveFormData,
+    simulations,
     updateSimulation,
   }
 }

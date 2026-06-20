@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useRef, useState } from 'react'
+import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Send } from 'lucide-react'
 import 'react-loading-skeleton/dist/skeleton.css'
@@ -35,7 +35,10 @@ function formatConversationHistory(entries: SimulationConversation[]) {
 export function AIInsightsCard({ simulationId }: AIInsightCardProps) {
   const { insight, isLoading, error, fetchInsight } = useInsight(simulationId)
   const { addConversation, getFormData } = useSimulationStorage()
-  const simulation = getFormData(simulationId)
+  const simulation = useMemo(
+    () => getFormData(simulationId),
+    [getFormData, simulationId],
+  )
 
   const [question, setQuestion] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -49,6 +52,10 @@ export function AIInsightsCard({ simulationId }: AIInsightCardProps) {
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [conversation.length, isSubmitting, insight])
+
+  useEffect(() => {
+    setConversation(simulation?.conversations ?? [])
+  }, [simulationId, simulation?.conversations])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
